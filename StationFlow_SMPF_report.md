@@ -1044,10 +1044,3 @@ Ultimately, the Singapore MRT network is not merely tracks and stations, but a l
 - MRT.SG. (n.d.). *Map of Singapore MRT and LRT lines*. Retrieved March 1, 2026, from https://mrt.sg/map
 - xkjyeah. (n.d.). *MRT-and-LRT-Stations* [Data set]. GitHub. https://github.com/xkjyeah/MRT-and-LRT-Stations
 
-### 5.2 Code
-
-> Code referenced in this report is maintained separately in the repository — see the project's `/code` or `/notebooks` directory.
-
-### 5.3 Data
-
-> Underlying datasets referenced in this report are maintained separately in the repository — see the project's `/data` directory.
