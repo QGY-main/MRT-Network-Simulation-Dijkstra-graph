@@ -46,7 +46,7 @@ The project has two major components:
 
 The MRT network is modelled as a weighted graph $G = (V, E)$, where each station is a node and each direct connection is an edge weighted by passenger volume $w_{ij}$.
 
-| ![Fig 1.1 – MRT network graph](images/fig1.1-mrt-network-graph.png) | ![Fig 1.2 – MRT network (real coordinates)](images/fig1.2-mrt-network-coordinates.jpg) |
+| ![Fig 1.1 – MRT network graph](images/image-1.png) | ![Fig 1.2 – MRT network (real coordinates)](images/image-2.png) |
 |---|---|
 | *Fig 1.1 — MRT network modelled as a graph (nodes = stations, colour = line clusters)* | *Fig 1.2 — Same network plotted using real station coordinates (longitude/latitude)* |
 
@@ -75,12 +75,12 @@ The table below summarizes each analytical tool used, **what it measures, and ho
 - **Stochastic optimization + Pareto frontier** searches the space of feasible upgrade packages (new edges, frequency, capacity) subject to LTA budget and operational constraints, and identifies the set of solutions that cannot be improved on one objective (cost or satisfaction) without worsening the other.
 
 <p align="center">
-  <img src="images/fig3.1-logistic-regression-graph.png" alt="Fig 3.1 – Time-based logistic regression model" width="600">
+  <img src="images/image-4.png" alt="Fig 3.1 – Time-based logistic regression model" width="600">
   <br><em>Fig 3.1 — Logistic regression fit of system-wide passenger volume over the day, showing the morning (~8am) and evening (~6pm) peaks the dynamic model captures.</em>
 </p>
 
 <p align="center">
-  <img src="images/fig3.4-algorithm-flowchart.jpg" alt="Fig 3.4 – Simulation and solution optimization algorithm" width="500">
+  <img src="images/image-8.png" alt="Fig 3.4 – Simulation and solution optimization algorithm" width="500">
   <br><em>Fig 3.4 — End-to-end computational pipeline: graph construction → articulation points (Tarjan) → OD routing (Dijkstra) → connectivity metrics → disruption simulation (Monte Carlo) and solution search (stochastic optimization + Pareto frontier).</em>
 </p>
 
@@ -137,7 +137,7 @@ Recall: **higher eigenvector value = more structurally vulnerable** (not necessa
 **Trend:** Vulnerability clusters heavily along the **East-West Line**, concentrated around Jurong East — stations on the western branch are structurally dependent on it as their sole gateway to the rest of the network. This is a recurring theme across every subsequent simulation.
 
 <p align="center">
-  <img src="images/fig3.2-articulation-points-map.jpg" alt="Fig 3.2 – Articulation points on the MRT map" width="700">
+  <img src="images/image-5.png" alt="Fig 3.2 – Articulation points on the MRT map" width="700">
   <br><em>Fig 3.2 — Articulation points on the network map. Left: Jurong East (EW24/NS1) as the sole bridge between the western branch and the rest of the network. Right: Woodlands (NS9/TE2) as the sole connector for Woodlands North (TE1).</em>
 </p>
 
@@ -250,7 +250,7 @@ To move from diagnosis to a feasible proposal, the report defines two co-depende
 
 **Significance:** SF drops from 0.1964 to 0.0067 — roughly a **30x improvement** in modelled commuter satisfaction — while remaining within all budget constraints. The Pareto frontier shows most feasible solutions cluster near the axes (a curve resembling $y = \log_{0.5}(x)$), and the chosen operating point sits close to the origin — simultaneously low-cost and low-dissatisfaction relative to the rest of the feasible set.
 
-| ![Fig 3.5 – Example Pareto frontier](images/fig3.5-example-pareto-frontier.png) | ![Fig 3.55 – Actual Pareto frontier (N=2417)](images/fig3.55-pareto-frontier-actual.png) |
+| ![Fig 3.5 – Example Pareto frontier](images/image-9.png) | ![Fig 3.55 – Actual Pareto frontier (N=2417)](images/image-10.png) |
 |---|---|
 | *Fig 3.5 — Illustrative Pareto frontier: valid solutions (grey), the frontier (red), and the balanced optimum (star)* | *Fig 3.55 — Actual Pareto frontier for the MRT network (N=2,417 feasible solutions), normalized axes, smaller is better on both* |
 
@@ -279,7 +279,7 @@ The two top-ranked edges by composite score (balancing connectivity gain, vulner
 
 **Note on scope:** the proposal deliberately excludes new *stations/nodes*, since the project's objective is improving connectivity within the existing network rather than geographic expansion. Adding edges between existing stations achieves this more cost-effectively than adding nodes.
 
-| ![Fig 3.6 – Proposed edge positions](images/fig3.6-proposed-edges-position.jpg) | ![Fig 3.6 – Improved network map](images/fig3.6-improved-network-map.png) |
+| ![Fig 3.6 – Proposed edge positions](images/image-11.png) | ![Fig 3.6 – Improved network map](images/image-12.png) |
 |---|---|
 | *Fig 3.6 — Local context of the two proposed edges: Buangkok–Ranggung (left) and Napier–Orchard (right)* | *Fig 3.6 — The two new edges (orange, labelled) plotted on the full network map with real coordinates* |
 
@@ -315,12 +315,12 @@ This is the headline result: under the worst-case simultaneous failure of all fi
 
 ### 10.3 Visual Summary: Before vs. After, by Metric
 
-| ![Fig 4.1 – Eigenvalue difference](images/fig4.1-eigenvalue-diff-bar-graph.png) | ![Fig 4.2 – Eigenvector difference](images/fig4.2-eigenvector-diff-bar-graph.png) |
+| ![Fig 4.1 – Eigenvalue difference](images/image-17.png) | ![Fig 4.2 – Eigenvector difference](images/image-18.png) |
 |---|---|
 | *Fig 4.1 — Change in post-disruption $\lambda_2$ per scenario, before vs. after solutions (higher/less negative is better)* | *Fig 4.2 — Change in post-disruption eigenvector value per scenario, before vs. after solutions* |
 
 <p align="center">
-  <img src="images/fig4.3-utilisation-factor-diff-bar-graph.png" alt="Fig 4.3 – Utilization factor difference" width="600">
+  <img src="images/image-19.png" alt="Fig 4.3 – Utilization factor difference" width="600">
   <br><em>Fig 4.3 — Change in post-disruption utilization factor per scenario, before vs. after solutions (lower is better). The Tampines (EW2/DT32) spike is the visible exception to the network-wide improvement.</em>
 </p>
 
@@ -342,12 +342,12 @@ Using the time-based logistic regression model, predicted daily commuter flow at
 
 Both before and after graphs retain a consistent **bimodal daily pattern** (morning peak ~6–9h, evening peak ~16–19h), confirming that Singapore's MRT crowding problem is driven primarily by peak-hour concentration rather than total daily volume — an important caveat for future work, since the current proposal addresses structural/spatial crowding but not time-of-day concentration directly.
 
-| ![Fig 3.7 – Passenger volume before solutions](images/fig3.7-passenger-volume-before.png) | ![Fig 3.75 – Passenger flow after solutions](images/fig3.75-passenger-flow-after.png) |
+| ![Fig 3.7 – Passenger volume before solutions](images/image-13.png) | ![Fig 3.75 – Passenger flow after solutions](images/image-14.png) |
 |---|---|
 | *Fig 3.7 — Predicted hourly throughput at the 5 critical stations, before implementing solutions* | *Fig 3.75 — Predicted hourly throughput after adding the two new edges and rerouting via Dijkstra* |
 
 <p align="center">
-  <img src="images/fig3.8-eigenvector-flow-over-time.png" alt="Fig 3.8 – Eigenvector flow across time" width="650">
+  <img src="images/image-15.png" alt="Fig 3.8 – Eigenvector flow across time" width="650">
   <br><em>Fig 3.8 — Eigenvector value of each critical station over the course of a day. Values surge during morning/evening peaks (shaded), showing that structural importance, not just traffic, spikes at rush hour.</em>
 </p>
 
