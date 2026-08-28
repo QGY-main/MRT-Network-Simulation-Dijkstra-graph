@@ -71,12 +71,12 @@ The table below summarizes each analytical tool used, **what it measures, and ho
 
 - **Dijkstra's algorithm** reroutes passengers onto the next-shortest available path once an edge is removed, updating the weight matrix so downstream metrics reflect realistic post-disruption behaviour.
 - **Monte Carlo simulation** runs large numbers of randomized disruption scenarios (k-station, probability-weighted by vulnerability, and line-based) to capture a realistic distribution of failure impacts rather than relying on a handful of hand-picked cases.
-- **Time-based logistic regression** models how commuter demand at a station rises and falls over the course of a day (morning/evening peaks plus a baseline), letting the static graph model be evaluated dynamically across time.
+- **Time-based best fit curve** models how commuter demand at a station rises and falls over the course of a day (morning/evening peaks plus a baseline), letting the static graph model be evaluated dynamically across time.
 - **Stochastic optimization + Pareto frontier** searches the space of feasible upgrade packages (new edges, frequency, capacity) subject to LTA budget and operational constraints, and identifies the set of solutions that cannot be improved on one objective (cost or satisfaction) without worsening the other.
 
 <p align="center">
-  <img src="images/image-4.png" alt="Fig 3.1 – Time-based logistic regression model" width="600">
-  <br><em>Fig 3.1 — Logistic regression fit of system-wide passenger volume over the day, showing the morning (~8am) and evening (~6pm) peaks the dynamic model captures.</em>
+  <img src="images/image-4.png" alt="Fig 3.1 – Time-based best fit curve model" width="600">
+  <br><em>Fig 3.1 — Best fit curve model of system-wide passenger volume over the day, showing the morning (~8am) and evening (~6pm) peaks the dynamic model captures.</em>
 </p>
 
 <p align="center">
@@ -328,7 +328,7 @@ This is the headline result: under the worst-case simultaneous failure of all fi
 
 ## 11. Commuter Flow Modelling
 
-Using the time-based logistic regression model, predicted daily commuter flow at the five critical stations was compared before and after the proposed changes.
+Using the time-based best fit curve model, predicted daily commuter flow at the five critical stations was compared before and after the proposed changes.
 
 | Station | Commuter Flow (Before) | Commuter Flow (After) | Change | % Change |
 |---|---|---|---|---|
