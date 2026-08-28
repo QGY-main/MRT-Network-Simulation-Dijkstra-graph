@@ -54,8 +54,8 @@ The table below summarizes each analytical tool used, **what it measures, and ho
 
 | Tool | What it measures | Direction of "better" |
 |---|---|---|
-| **Adjacency / weight matrix ($W$)** | Passenger volume directly between two stations | N/A — input data |
-| **Normalized Laplacian ($L = I - D^{-1/2}WD^{-1/2}$)** | Structural encoding of the network, scaled so stations of very different traffic volume can be compared fairly | N/A — intermediate matrix |
+| **Adjacency / weight matrix ($W$)** | Passenger volume directly between two stations | Input data |
+| **Normalized Laplacian ($L = I - D^{-1/2}WD^{-1/2}$)** | Structural encoding of the network, scaled so stations of very different traffic volume can be compared fairly | Computed Intermediate matrix |
 | **Fiedler eigenvalue ($\lambda_2$)** | *Algebraic connectivity* — how well-connected and evenly distributed the network's passenger flow is | **Higher is better.** A higher $\lambda_2$ means the network is harder to fragment and less reliant on any single station |
 | **$\lambda_2$ benchmark** | Expected $\lambda_2$ for a network of similar size/degree distribution, used as a fair comparison point | Network's $\lambda_2$ **above** benchmark = well-connected; **below** = structurally weak |
 | **Eigenvector value ($\hat V_i$, normalized 0–1)** | A station's structural importance / criticality to overall connectivity | **Higher is worse** (more vulnerable) — 1 = most vulnerable, 0 = not vulnerable |
