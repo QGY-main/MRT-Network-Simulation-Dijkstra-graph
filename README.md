@@ -65,6 +65,8 @@ The table below summarizes each analytical tool used, **what it measures, and ho
 | **Satisfaction Factor (SF)** | Average utilization factor across affected edges — a proxy for commuter experience | **Lower is better** — lower SF = less crowding, better experience |
 | **Total Cost (TC)** | Combined capital (new edges) and operational (frequency × capacity) cost per hour | Constrained by LTA budget; not inherently "better" or "worse", but traded off against SF |
 
+**Take note that all data is obtained from LTA and based on the network in place in April 2025**
+
 **Disruption simulation tools:**
 
 - **Dijkstra's algorithm** reroutes passengers onto the next-shortest available path once an edge is removed, updating the weight matrix so downstream metrics reflect realistic post-disruption behaviour.
