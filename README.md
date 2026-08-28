@@ -353,19 +353,6 @@ Both before and after graphs retain a consistent **bimodal daily pattern** (morn
 
 ---
 
-## 12. Key Findings & Conclusion
-
-1. **The network is structurally under-connected.** Baseline $\lambda_2$ (0.01019) is roughly 400% below the expected benchmark (0.04167), indicating heavy reliance on a small number of critical stations.
-2. **Vulnerability is concentrated, not distributed.** The East-West Line — particularly around **Jurong East** — accounts for the majority of high-impact vulnerabilities across every simulation method used (targeted, Monte Carlo, and self-disruption analysis).
-3. **Vulnerability ≠ crowding.** High-traffic stations (e.g. Serangoon) are not necessarily structurally critical, and structurally critical stations (e.g. Jurong East) are not necessarily the most crowded. Interventions must be targeted accordingly.
-4. **Large-scale line disruptions are most damaging on the Downtown and North-South Lines**, both in connectivity loss and crowding spikes, while the North-East Line is comparatively low-risk.
-5. **The proposed solution — two new edges (S$1.04B) plus a capacity/frequency increase — is validated by simulation**: it improves worst-case (5-station) post-disruption connectivity by 35% and reduces crowding by 61.5%, and is selected via an unbiased Pareto-optimal search across 2,417 feasible candidate solutions, improving the modelled satisfaction factor by ~30x while remaining within LTA budget constraints.
-6. **The proposal is not a complete fix.** It leaves Jurong East's core vulnerability largely unchanged and *worsens* crowding at Tampines, indicating clear priorities for a follow-up phase of interventions.
-
-Singapore's MRT network is not just infrastructure — it is a daily lifeline for millions. This project demonstrates that its structural weaknesses can be precisely located and its resilience meaningfully improved through mathematically grounded, budget-constrained interventions, rather than intuition alone.
-
----
-
 ## 13. References
 
 - Fiedler, M. *Algebraic connectivity of graphs*. Czechoslovak Mathematical Journal.
