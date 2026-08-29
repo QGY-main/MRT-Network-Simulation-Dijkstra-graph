@@ -19,8 +19,7 @@ A spectral graph analysis of Singapore's MRT network — quantifying connectivit
 9. [Proposed Solution](#9-proposed-solution)
 10. [Post-Solution Results](#10-post-solution-results)
 11. [Commuter Flow Modelling](#11-commuter-flow-modelling)
-12. [Key Findings & Conclusion](#12-key-findings--conclusion)
-13. [References](#13-references)
+12. [References](#13-references)
 
 ---
 
