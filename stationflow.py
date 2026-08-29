@@ -12,6 +12,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.sparse import csr_matrix, issparse
 from scipy.sparse.csgraph import dijkstra, laplacian
@@ -249,6 +251,7 @@ def disrupt_random_edges(base_unweighted, num_edges, rng):
     # Output: (disrupted adjacency matrix, list of (i, j) index pairs removed)
     g = base_unweighted.copy()
     edge_idx = np.argwhere(np.triu(base_unweighted) == 1)
+    num_edges = min(num_edges, len(edge_idx))
     chosen = rng.choice(len(edge_idx), size=num_edges, replace=False)
     applied = []
     for i in chosen:
@@ -341,7 +344,7 @@ def two_peak_logistic(t, B, K1, gamma1, t1_start, t1_end, K2, gamma2, t2_start, 
     # Input : time array t, curve parameters
     # Output: modeled throughput array (AM peak + PM peak sigmoid bumps + baseline)
     def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
+        return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
     morning = K1 * np.minimum(sigmoid(gamma1 * (t - t1_start)), sigmoid(gamma1 * (t1_end - t)))
     evening = K2 * np.minimum(sigmoid(gamma2 * (t - t2_start)), sigmoid(gamma2 * (t2_end - t)))
     return B + morning + evening
@@ -461,27 +464,24 @@ def plot_network(unweighted_adj_matrix, node2index, index2node, stn_code_to_coor
     plt.tight_layout()
     if savepath:
         plt.savefig(savepath, dpi=150)
-    plt.show()
     plt.close()
 
-import numpy as np
-import networkx as nx
- 
- # Computing benchmark for eigenvalue
+
 def compute_lambda2_benchmark(unweighted_adj_matrix, od_data_arr, node2index,
                                n_trials=500, seed=7, verbose=True):
     # Input : unweighted_adj_matrix (real topology), od_data_arr, node2index,
     #         n_trials (number of random-topology samples), seed
     # Output: dict with 'mean', 'std', 'ci95' (2.5/97.5 percentiles), 'samples' (array)
+    import networkx as nx
+
     n = unweighted_adj_matrix.shape[0]
     G_real = nx.from_numpy_array(unweighted_adj_matrix)
-    deg_seq = [d for _, d in G_real.degree()]
- 
+
     rng = np.random.default_rng(seed)
     samples = []
     trial, attempts = 0, 0
     max_attempts = n_trials * 20
- 
+
     while trial < n_trials and attempts < max_attempts:
         attempts += 1
         H = G_real.copy()
@@ -493,25 +493,26 @@ def compute_lambda2_benchmark(unweighted_adj_matrix, od_data_arr, node2index,
             continue  # occasionally fails on sparse/awkward degree sequences; skip and retry
         if not nx.is_connected(H):
             continue
- 
+
         rand_adj = nx.to_numpy_array(H)
         rand_weighted = route_and_weight(rand_adj, od_data_arr, node2index)
         fval, _, _, _ = fiedler_pair(rand_weighted)
         samples.append(fval)
         trial += 1
- 
+
         if verbose and trial % 50 == 0:
             print(f"  benchmark trial {trial}/{n_trials}")
- 
+
     samples = np.array(samples)
     result = {
-        "mean": float(samples.mean()),
-        "std": float(samples.std()),
-        "ci95": tuple(np.percentile(samples, [2.5, 97.5])),
+        "mean": float(samples.mean()) if len(samples) else float("nan"),
+        "std": float(samples.std()) if len(samples) else float("nan"),
+        "ci95": tuple(np.percentile(samples, [2.5, 97.5])) if len(samples) else (float("nan"), float("nan")),
         "samples": samples,
         "n_valid_trials": len(samples),
     }
     return result
+
 
 def check_constraints(c, f, cost_per_new_edge, num_new_edge, op_cost_per_capacity, freq_min, freq_max):
     # Input : capacity array, frequency array, cost constants, freq bounds
@@ -545,31 +546,76 @@ def normalize(x):
     return np.zeros_like(x) if rng_ == 0 else (x - x.min()) / rng_
 
 
-def main():
+def compute_baseline():
+    """
+    Shared setup used by both this module's main() and post_solution.py.
+
+    Loads the raw data, builds the topology + OD-weighted graph, runs the
+    spectral (Fiedler) analysis, and scores expansion candidates.
+
+    Output: dict with keys nodes, node2index, index2node, unweighted_adj_matrix,
+            stn_code_to_coor, od_data_arr, weighted_adj_matrix, fiedler_val,
+            fiedler_vec, eigen_vals, eigen_vecs, baseline_util, candidates,
+            df_expansion
+    """
     for p in (STN_DATA_PATH, OD_DATA_PATH, STN_COOR_PATH):
         if not p.exists():
-            print(f"Missing data file: {p}. Set STATIONFLOW_DATA_DIR or place data under '{DATA_DIR}/'.")
+            raise FileNotFoundError(
+                f"Missing data file: {p}. Set STATIONFLOW_DATA_DIR or place data under '{DATA_DIR}/'."
+            )
 
-    # --- graph construction ---
-    # Input : STN_DATA_PATH, STN_COOR_PATH
-    # Output: nodes, node2index, index2node, unweighted_adj_matrix, stn_code_to_coor
     nodes, node2index, index2node = build_station_index(STN_DATA_PATH)
     unweighted_adj_matrix = build_unweighted_adjacency(nodes, node2index)
     check_symmetry(unweighted_adj_matrix, "unweighted_adj_matrix")
     stn_code_to_coor = build_station_coordinates(STN_COOR_PATH, node2index)
 
-    # --- weighted graph from OD flows ---
-    # Input : OD_DATA_PATH, unweighted_adj_matrix
-    # Output: weighted_adj_matrix
     od_data_arr = load_od_data(OD_DATA_PATH)
     weighted_adj_matrix = route_and_weight(unweighted_adj_matrix, od_data_arr, node2index, verbose=True)
     check_symmetry(weighted_adj_matrix, "weighted_adj_matrix")
 
-    # --- spectral (Fiedler) analysis ---
-    # Input : weighted_adj_matrix
-    # Output: fiedler_val, fiedler_vec, eigen_vals, eigen_vecs
     fiedler_val, fiedler_vec, eigen_vals, eigen_vecs = fiedler_pair(weighted_adj_matrix)
     print(f"Fiedler value: {fiedler_val:.6f}")
+
+    baseline_util = utilization_factor(weighted_adj_matrix, CAPACITY, FREQUENCY)
+
+    MAX_CANDIDATES = 200
+    candidates = candidate_edges_by_distance(nodes, node2index, index2node, unweighted_adj_matrix, stn_code_to_coor)
+    if MAX_CANDIDATES is not None and len(candidates) > MAX_CANDIDATES:
+        rng = np.random.default_rng(0)
+        sel = rng.choice(len(candidates), size=MAX_CANDIDATES, replace=False)
+        candidates = [candidates[i] for i in sel]
+
+    df_expansion = analyze_network_expansion(candidates, unweighted_adj_matrix, od_data_arr, node2index, index2node,
+                                              fiedler_val, fiedler_vec, baseline_util)
+
+    return {
+        "nodes": nodes,
+        "node2index": node2index,
+        "index2node": index2node,
+        "unweighted_adj_matrix": unweighted_adj_matrix,
+        "stn_code_to_coor": stn_code_to_coor,
+        "od_data_arr": od_data_arr,
+        "weighted_adj_matrix": weighted_adj_matrix,
+        "fiedler_val": fiedler_val,
+        "fiedler_vec": fiedler_vec,
+        "eigen_vals": eigen_vals,
+        "eigen_vecs": eigen_vecs,
+        "baseline_util": baseline_util,
+        "candidates": candidates,
+        "df_expansion": df_expansion,
+    }
+
+
+def main():
+    b = compute_baseline()
+    nodes, node2index, index2node = b["nodes"], b["node2index"], b["index2node"]
+    unweighted_adj_matrix = b["unweighted_adj_matrix"]
+    stn_code_to_coor = b["stn_code_to_coor"]
+    od_data_arr = b["od_data_arr"]
+    weighted_adj_matrix = b["weighted_adj_matrix"]
+    fiedler_val, fiedler_vec = b["fiedler_val"], b["fiedler_vec"]
+    baseline_util = b["baseline_util"]
+    df_expansion = b["df_expansion"]
 
     # --- vulnerability plot ---
     # Input : fiedler_vec, index2node
@@ -584,13 +630,7 @@ def main():
     plt.ylabel("|Eigenvector value|")
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "vulnerable_stations.png", dpi=150)
-    plt.show()
     plt.close()
-
-    # --- utilization factor ---
-    # Input : weighted_adj_matrix, CAPACITY, FREQUENCY
-    # Output: baseline_util (per-station array)
-    baseline_util = utilization_factor(weighted_adj_matrix, CAPACITY, FREQUENCY)
 
     # --- selected-station eigenvector export ---
     # Input : TARGET_STATIONS, fiedler_vec, node2index
@@ -634,7 +674,6 @@ def main():
     plt.legend(title="Station", fontsize=9)
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "station_throughput_logistic.png", dpi=150)
-    plt.show()
     plt.close()
 
     # --- disruption scenarios ---
@@ -733,17 +772,7 @@ def main():
         OUTPUT_DIR / "monte_carlo_disruption_summary.csv", index=False)
 
     # --- network expansion analysis ---
-    # Input : MAX_CANDIDATES below, unweighted_adj_matrix, stn_code_to_coor, od_data_arr
     # Output: output/network_expansion_analysis.csv
-    MAX_CANDIDATES = 200
-    candidates = candidate_edges_by_distance(nodes, node2index, index2node, unweighted_adj_matrix, stn_code_to_coor)
-    if MAX_CANDIDATES is not None and len(candidates) > MAX_CANDIDATES:
-        rng = np.random.default_rng(0)
-        sel = rng.choice(len(candidates), size=MAX_CANDIDATES, replace=False)
-        candidates = [candidates[i] for i in sel]
-
-    df_expansion = analyze_network_expansion(candidates, unweighted_adj_matrix, od_data_arr, node2index, index2node,
-                                              fiedler_val, fiedler_vec, baseline_util)
     df_expansion.to_csv(OUTPUT_DIR / "network_expansion_analysis.csv", index=False)
 
     # --- rank expansion candidates ---
@@ -786,6 +815,11 @@ def main():
                                OPERATIONAL_COST_PER_CAPACITY, FREQ_MIN, FREQ_MAX)
     caps, freqs = raw_caps[valid], raw_freqs[valid]
 
+    if len(caps) == 0:
+        print("Warning: no (capacity, frequency) samples satisfied the constraints; "
+              "skipping Pareto frontier analysis.")
+        return
+
     flow_per_node = weighted_adj_matrix.sum(axis=1)
     raw_cost = COST_PER_NEW_EDGE * NUM_NEW_EDGE + OPERATIONAL_COST_PER_CAPACITY * (BETA * caps + freqs * ALPHA)
     raw_sat = flow_per_node.sum() / (caps * freqs * len(flow_per_node))
@@ -802,7 +836,7 @@ def main():
     plt.scatter(sat_norm, cost_norm, c='gray', s=5, alpha=0.5, label='Valid Solutions')
     order = np.argsort(p_sat)
     plt.plot(p_sat[order], p_cost[order], c='red', linewidth=2, label='Pareto Frontier')
-    plt.scatter(cost_norm[best_global], sat_norm[best_global], c='green', marker='*', s=300,
+    plt.scatter(sat_norm[best_global], cost_norm[best_global], c='green', marker='*', s=300,
                 edgecolors='black', zorder=10, label='Balanced Solution')
     plt.title(f'Pareto Optimization: Satisfaction vs Cost (N={len(caps)})')
     plt.xlabel('Satisfaction Factor (Normalized, smaller is better)')
@@ -811,7 +845,6 @@ def main():
     plt.legend()
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "pareto_frontier.png", dpi=150)
-    plt.show()
     plt.close()
 
     print(f"Capacity  : {caps[best_global]:.0f} pax/train")
@@ -821,115 +854,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-"""
-Post-solution ("improved network")
-
-What this does, that the base script does NOT do:
-  1. Builds one improved graph 
-  2. Reruns route_and_weight + fiedler_pair on that combined graph to get the
-     "after" network-wide Fiedler value (lambda2).
-  3. Reruns the 5-station disruption scenario (TARGET_STATIONS)
-
-Output: output/post_solution_network_summary.csv
-        output/post_solution_disruption_comparison.csv
-"""
-import numpy as np
-import pandas as pd
-
-from stationflow import (
-    OUTPUT_DIR, CAPACITY, FREQUENCY, TARGET_STATIONS,
-    route_and_weight, fiedler_pair, utilization_factor,
-    disrupt_stations, analyze_disruption, rank_by_composite_score,
-)
-
-
-def build_combined_improved_graph(unweighted_adj_matrix, node2index, df_expansion, top_k=2):
-    # Input : original unweighted adjacency matrix, node2index, network_expansion
-    #         results dataframe, number of top candidate edges to add together
-    # Output: (combined adjacency matrix with top_k edges added, list of
-    #         (station_a, station_b) name pairs that were added)
-    top = rank_by_composite_score(df_expansion, top_k=top_k)
-    combined = unweighted_adj_matrix.copy()
-    added_edges = []
-    for edge_str in top["EDGE_BETWEEN_STN"]:
-        a_name, b_name = [s.strip() for s in edge_str.split(" - ")]
-        i, j = node2index[a_name], node2index[b_name]
-        combined[i, j] = combined[j, i] = 1
-        added_edges.append((a_name, b_name))
-    return combined, added_edges
-
-
-def compute_post_solution_results(unweighted_adj_matrix, combined_graph, od_data_arr,
-                                   node2index, index2node, fiedler_val, fiedler_vec,
-                                   baseline_util, target_stations=TARGET_STATIONS,
-                                   capacity=CAPACITY, frequency=FREQUENCY):
-
-    weighted_improved = route_and_weight(combined_graph, od_data_arr, node2index)
-    fval_improved, fvec_improved, _, _ = fiedler_pair(weighted_improved)
-    if np.dot(fvec_improved, fiedler_vec) < 0:
-        fvec_improved = -fvec_improved
-    util_improved = utilization_factor(weighted_improved, capacity, frequency)
-
-    network_summary = {
-        "Fiedler value (before)": fiedler_val,
-        "Fiedler value (after)": fval_improved,
-        "Fiedler value change %": (fval_improved - fiedler_val) / fiedler_val * 100,
-        "Mean utilization (before)": float(baseline_util.mean()),
-        "Mean utilization (after)": float(util_improved.mean()),
-        "Mean utilization change %": (util_improved.mean() - baseline_util.mean())
-                                       / baseline_util.mean() * 100,
-    }
-
-    # --- 5-station disruption scenario, rerun on original vs improved graph ---
-    rows = []
-    for stn in target_stations:
-        if stn not in node2index:
-            continue
-
-        d_before_graph, _ = disrupt_stations(unweighted_adj_matrix, node2index, [stn])
-        res_before = analyze_disruption(d_before_graph, od_data_arr, node2index, index2node,
-                                         fiedler_val, fiedler_vec, baseline_util, capacity, frequency)
-
-        d_after_graph, _ = disrupt_stations(combined_graph, node2index, [stn])
-        res_after = analyze_disruption(d_after_graph, od_data_arr, node2index, index2node,
-                                        fval_improved, fvec_improved, util_improved, capacity, frequency)
-
-        retained_before = (res_before["fiedler_value"] / fiedler_val * 100) if fiedler_val else np.nan
-        retained_after = (res_after["fiedler_value"] / fval_improved * 100) if fval_improved else np.nan
-
-        rows.append({
-            "Station": stn,
-            "Fiedler pre-disruption (before improvement)": fiedler_val,
-            "Fiedler post-disruption (before improvement)": res_before["fiedler_value"],
-            "Connectivity retained % (before improvement)": retained_before,
-            "Fiedler pre-disruption (after improvement)": fval_improved,
-            "Fiedler post-disruption (after improvement)": res_after["fiedler_value"],
-            "Connectivity retained % (after improvement)": retained_after,
-            "Avg crowding change (before improvement)": res_before["avg_change_utilization"],
-            "Avg crowding change (after improvement)": res_after["avg_change_utilization"],
-            "Crowding change reduction %": (
-                (res_before["avg_change_utilization"] - res_after["avg_change_utilization"])
-                / abs(res_before["avg_change_utilization"]) * 100
-                if res_before["avg_change_utilization"] not in (0, None) else np.nan
-            ),
-        })
-
-    df_comparison = pd.DataFrame(rows)
-    return network_summary, df_comparison, weighted_improved, fval_improved, fvec_improved, util_improved
-
-
-if __name__ == "__main__":
-
-    combined_graph, added_edges = build_combined_improved_graph(
-        unweighted_adj_matrix, node2index, df_expansion, top_k=2)
-    print(f"Added edges: {added_edges}")
-
-    network_summary, df_comparison, weighted_improved, fval_improved, fvec_improved, util_improved = \
-        compute_post_solution_results(
-            unweighted_adj_matrix, combined_graph, od_data_arr,
-            node2index, index2node, fiedler_val, fiedler_vec, baseline_util)
-
-    pd.DataFrame([network_summary]).to_csv(OUTPUT_DIR / "post_solution_network_summary.csv", index=False)
-    df_comparison.to_csv(OUTPUT_DIR / "post_solution_disruption_comparison.csv", index=False)
-    print(df_comparison.to_string(index=False))
