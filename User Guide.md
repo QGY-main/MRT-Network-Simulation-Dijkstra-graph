@@ -4,6 +4,10 @@ Short intro into the input and outputs of the code
 
 ---
 
+## 0. Order of Use
+
+Run 'code-presolution.py' first, to output the standard metrics from the original graph. Then run 'code-post_solution.py' to obtain a side by side comparison between the original and improved graph
+
 ## 1. Input Datasets
 
 Datasets 'node_simplified.csv', 'stn_coor_010326.csv' and 'origin_destination_train_202504.csv' are found in the resources folder.
@@ -76,16 +80,10 @@ All outputs are written to `output/` (created automatically).
 
 ## 4. Benchmark Addition (`compute_lambda2_benchmark`)
 
-An extra function (not part of the original script) that estimates what $\lambda_2$
-"should" look like for a network of the same size and degree sequence, so the real
-network's connectivity can be judged against something concrete rather than a bare number.
+An extra function that estimates what $\lambda_2$
+"should" look like for a network of the same size and degree sequence.
 
-**Inputs required:** `unweighted_adj_matrix`, `od_data_arr`, `node2index` — all already
-produced by the main script, so no new data files are needed.
-
-**What it does:** generates random topologies that keep every station's exact number of
-connections but rewire which stations connect to which, routes the same real OD trip data
-over each one, and computes $\lambda_2$ each time.
+**Inputs required:** `unweighted_adj_matrix`, `od_data_arr`, `node2index` — produced from the code already
 
 **Output:**
 - `mean`, `std`, and `ci95` (95% confidence interval) of $\lambda_2$ across the random trials
