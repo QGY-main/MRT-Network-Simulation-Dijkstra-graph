@@ -1,17 +1,13 @@
 """
 Post-solution ("improved network")
 
-What this does, that the base script does NOT do:
+What this does:
   1. Builds one improved graph by adding the top-2 candidate edges from the
      network expansion analysis.
   2. Reruns route_and_weight + fiedler_pair on that combined graph to get the
      "after" network-wide Fiedler value (lambda2).
   3. Reruns the 5-station disruption scenario (TARGET_STATIONS) on both the
      original and improved graphs, for comparison.
-
-Run this after (or instead of) stationflow.py's main() — it recomputes the
-baseline itself via stationflow.compute_baseline(), so it does not depend on
-stationflow.py having been run first in the same process.
 
 Output: output/post_solution_network_summary.csv
         output/post_solution_disruption_comparison.csv
