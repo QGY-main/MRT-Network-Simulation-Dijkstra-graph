@@ -352,7 +352,7 @@ Both before and after graphs retain a consistent **bimodal daily pattern** (morn
 
 ---
 
-## 13. References
+## 12. References
 
 - Fiedler, M. *Algebraic connectivity of graphs*. Czechoslovak Mathematical Journal.
 - Borgatti, S. P. *Centrality and Network Flow*.
